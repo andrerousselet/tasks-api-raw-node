@@ -1,12 +1,13 @@
 import { randomUUID } from "node:crypto";
 import { Database } from "./database.js";
+import { buildRoutePath } from "./utils/build-route-path.js";
 
 const db = new Database();
 
 export const routes = [
   {
     method: "GET",
-    path: "/tasks",
+    path: buildRoutePath("/tasks"),
     handler: (req, res) => {
       const tasks = db.select("tasks");
       return res.end(JSON.stringify(tasks));
@@ -14,7 +15,7 @@ export const routes = [
   },
   {
     method: "POST",
-    path: "/tasks",
+    path: buildRoutePath("/tasks"),
     handler: (req, res) => {
       const { title, description } = req.body;
       const now = new Date();
@@ -27,7 +28,20 @@ export const routes = [
         updated_at: now,
       };
       db.insert("tasks", task);
-      return res.writeHead(201).end("News task created!");
+      return res.writeHead(201).end("New task created!");
+    },
+  },
+  {
+    method: "DELETE",
+    path: buildRoutePath("/tasks/:id"),
+    handler: (req, res) => {
+      const { id } = req.params;
+      const foundTask = db.selectOne("tasks", id);
+      if (!foundTask) {
+        return res.writeHead(404).end("Task does not exist.");
+      }
+      db.delete("tasks", id);
+      return res.writeHead(204).end();
     },
   },
 ];
