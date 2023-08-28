@@ -17,12 +17,19 @@ export class Database {
     fs.writeFile(dbPath, JSON.stringify(this.#database));
   }
 
-  select(table) {
+  select(table, search) {
     let data = this.#database[table] ?? [];
+    if (search) {
+      data = data.filter((row) => {
+        return Object.entries(search).some(([key, value]) => {
+          return row[key].toLowerCase().includes(value.toLowerCase());
+        });
+      });
+    }
     return data;
   }
 
-  findOne(table, id) {
+  selectOne(table, id) {
     const rowIndex = this.#database[table].findIndex((row) => row.id === id);
     const task = this.#database[table][rowIndex];
     return task;
