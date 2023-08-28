@@ -27,6 +27,9 @@ export const routes = [
     path: buildRoutePath("/tasks"),
     handler: (req, res) => {
       const { title, description } = req.body;
+      if (!title || !description) {
+        return res.writeHead(400).end("Title and description are required");
+      }
       const now = new Date();
       const task = {
         id: randomUUID(),
@@ -46,17 +49,32 @@ export const routes = [
     handler: (req, res) => {
       const { id } = req.params;
       const { title, description } = req.body;
+      if (!title && !description) {
+        return res.writeHead(400).end("Title or description are required");
+      }
       const foundTask = db.selectOne("tasks", id);
       if (!foundTask) {
         return res.writeHead(404).end("Task does not exist.");
       }
-      db.update("tasks", id, {
-        title,
-        description,
-        completed_at: foundTask.completed_at,
-        created_at: foundTask.created_at,
-        updated_at: new Date(),
-      });
+      if (title && !description) {
+        db.update("tasks", id, {
+          title,
+          updated_at: new Date(),
+        });
+      }
+      if (!title && description) {
+        db.update("tasks", id, {
+          description,
+          updated_at: new Date(),
+        });
+      }
+      if (title && description) {
+        db.update("tasks", id, {
+          title,
+          description,
+          updated_at: new Date(),
+        });
+      }
       return res.writeHead(204).end();
     },
   },
