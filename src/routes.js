@@ -79,6 +79,22 @@ export const routes = [
     },
   },
   {
+    method: "PATCH",
+    path: buildRoutePath("/tasks/:id"),
+    handler: (req, res) => {
+      const { id } = req.params;
+      const foundTask = db.selectOne("tasks", id);
+      if (!foundTask) {
+        return res.writeHead(404).end("Task does not exist.");
+      }
+      const isTaskComplete = !!foundTask.completed_at;
+      db.update("tasks", id, {
+        completed_at: isTaskComplete ? null : new Date(),
+      });
+      return res.writeHead(204).end();
+    },
+  },
+  {
     method: "DELETE",
     path: buildRoutePath("/tasks/:id"),
     handler: (req, res) => {
